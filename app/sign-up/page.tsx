@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { signUp } from "@/app/auth/actions";
 
 export const metadata: Metadata = {
   title: "Start free — Eavesdrop",
@@ -24,44 +26,7 @@ export default function SignUpPage() {
             Free tier, no credit card. 10 leads a week on us.
           </p>
 
-          {/* Placeholder form — auth wired up in Phase 1b (Supabase) */}
-          <form className="mt-8 space-y-4" action="/sign-up" method="post">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-ink"
-              >
-                Work email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@company.com"
-                className="mt-1.5 w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-ink"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="••••••••"
-                className="mt-1.5 w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
-              />
-            </div>
-            <button type="submit" className="btn-signal w-full">
-              Create account
-            </button>
-          </form>
+          <AuthForm mode="sign-up" action={signUp} />
 
           <p className="mt-6 text-center text-sm text-static">
             Already have an account?{" "}

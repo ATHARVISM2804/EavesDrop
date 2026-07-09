@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { signIn } from "@/app/auth/actions";
 
 export const metadata: Metadata = {
   title: "Sign in — Eavesdrop",
   description: "Sign in to your Eavesdrop account.",
 };
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string; error?: string }>;
+}) {
+  const { redirect, error } = await searchParams;
   return (
     <main className="flex min-h-screen">
       <div className="flex w-full flex-col justify-center px-6 py-12 md:w-1/2 md:px-16">
@@ -23,51 +30,13 @@ export default function SignInPage() {
             Pick up where your pipeline left off.
           </p>
 
-          <form className="mt-8 space-y-4" action="/sign-in" method="post">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-ink"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@company.com"
-                className="mt-1.5 w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-ink"
-                >
-                  Password
-                </label>
-                <Link
-                  href="/reset-password"
-                  className="text-xs text-static hover:text-ink"
-                >
-                  Forgot?
-                </Link>
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="mt-1.5 w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
-              />
-            </div>
-            <button type="submit" className="btn-ink w-full">
-              Sign in
-            </button>
-          </form>
+          {error ? (
+            <p className="mt-6 rounded-md border border-alert/30 bg-alert/8 px-3 py-2 text-sm text-alert">
+              {error}
+            </p>
+          ) : null}
+
+          <AuthForm mode="sign-in" action={signIn} redirectTo={redirect} />
 
           <p className="mt-6 text-center text-sm text-static">
             New to Eavesdrop?{" "}
