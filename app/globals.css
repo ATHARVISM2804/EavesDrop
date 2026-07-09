@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    @apply bg-signal/20 text-ink;
+  }
+}
+
+@layer components {
+  /* Section container — consistent horizontal rhythm */
+  .container-content {
+    @apply mx-auto w-full max-w-content px-6 md:px-10;
+  }
+
+  /* Editorial eyebrow label */
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-static;
+  }
+
+  /* Primary CTA — solid amber, sharp-ish corners */
+  .btn-signal {
+    @apply inline-flex items-center justify-center rounded-md bg-signal px-5 py-3
+           text-sm font-medium text-paper transition-colors duration-150
+           hover:bg-signal/90 focus:outline-none focus-visible:ring-2
+           focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+  }
+
+  /* Secondary CTA — solid ink */
+  .btn-ink {
+    @apply inline-flex items-center justify-center rounded-md bg-ink px-5 py-3
+           text-sm font-medium text-paper transition-colors duration-150
+           hover:bg-ink/90 focus:outline-none focus-visible:ring-2
+           focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+  }
+
+  /* Ghost / link-style button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-md border border-divider
+           bg-transparent px-5 py-3 text-sm font-medium text-ink transition-colors
+           duration-150 hover:border-static hover:bg-ink/[0.03];
+  }
+
+  /* Flat editorial card — 1px warm border, no heavy shadow */
+  .card {
+    @apply rounded-lg border border-divider bg-paper p-6;
+  }
+}
