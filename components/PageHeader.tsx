@@ -1,3 +1,10 @@
+import { AtmosphereBand } from "@/components/marketing/AtmosphereBand";
+
+/**
+ * Standard page header — a cloud band tucked behind the floating nav, matching
+ * the home hero. Used at the top of the marketing pages, so it carries the one
+ * video band those pages get (see AtmosphereBand for why it's one per page).
+ */
 export function PageHeader({
   eyebrow,
   title,
@@ -8,14 +15,12 @@ export function PageHeader({
   subtitle?: string;
 }) {
   return (
-    <div className="container-content py-16 text-center md:py-20">
-      <span className="eyebrow">{eyebrow}</span>
-      <h1 className="mx-auto mt-4 max-w-3xl font-serif text-4xl font-semibold leading-[1.08] tracking-tight md:text-5xl">
-        {title}
-      </h1>
-      {subtitle && (
-        <p className="mx-auto mt-4 max-w-xl text-lg text-static">{subtitle}</p>
-      )}
-    </div>
+    <AtmosphereBand video tuckUnderNav>
+      <div className="container-content py-20 text-center md:py-24">
+        <span className="eyebrow">{eyebrow}</span>
+        <h1 className="display-2 mx-auto mt-4 max-w-3xl text-ink">{title}</h1>
+        {subtitle && <p className="lead mx-auto mt-5 max-w-xl">{subtitle}</p>}
+      </div>
+    </AtmosphereBand>
   );
 }
