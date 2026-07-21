@@ -1,0 +1,48 @@
+# Eavesdrop ingest → score pipeline trigger.
+#
+# Runs the pipeline every 5 minutes without needing Vercel Pro. Vercel's Hobby
+# plan caps cron jobs at once/day, so this external scheduler drives the real
+# near-live cadence instead. It just calls the CRON_SECRET-guarded endpoint.
+#
+# Setup (Settings → Secrets and variables → Actions):
+#   Secret  CRON_SECRET   — same value as the CRON_SECRET env var on Vercel
+#   Secret  PIPELINE_URL  — https://<your-app>.vercel.app/api/pipeline
+#
+# Note: GitHub's scheduled runners are best-effort — expect the occasional
+# few-minute delay or a skipped tick under heavy load. If you need tighter
+# guarantees, cron-job.org (free, 1-min granularity) hitting the same URL with
+# the same Bearer header is more reliable. Either way, keep a daily Vercel cron
+# in vercel.json as a backstop.
+
+name: Pipeline cron
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # every 5 minutes (UTC)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+# Never let two runs overlap — a slow pipeline shouldn't stack.
+concurrency:
+  group: pipeline-cron
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger ingest → score
+        env:
+          PIPELINE_URL: ${{ secrets.PIPELINE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$PIPELINE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::PIPELINE_URL and CRON_SECRET repo secrets must be set."
+            exit 1
+          fi
+
+          # --fail-with-body: non-2xx exits non-zero but still prints the body.
+          # --max-time 120: give the scoring calls room without hanging forever.
+          curl --fail-with-body --silent --show-error --max-time 120 \
+            -X POST "$PIPELINE_URL" \
+            -H "Authorization: Bearer $CRON_SECRET"
