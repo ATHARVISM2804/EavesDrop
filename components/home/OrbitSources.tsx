@@ -1,10 +1,12 @@
-// Orbital "coverage" section — sources arranged around a central listener with
-// a slow radar sweep rotating over them. The radar metaphor is the point:
-// Eavesdrop listens across every channel at once.
+// Orbital "coverage" section — source logos revolving around the Eavesdrop
+// mark. Two rings turn at different speeds and opposite directions; each chip
+// counter-rotates at the same duration so the logos stay upright while their
+// orbit carries them around.
 //
-// Pure-CSS motion (spin + drift + pulse), so this stays a server component and
-// costs nothing at runtime. All animation halts under prefers-reduced-motion
-// via the global rule in globals.css.
+// Pure-CSS motion, so this stays a server component and costs nothing at
+// runtime. Everything halts under prefers-reduced-motion via globals.css.
+
+import { LogoMark } from "@/components/Logo";
 
 /* ── brand marks ───────────────────────────────────────────────────────── */
 
@@ -53,20 +55,77 @@ const Discord = (
   </svg>
 );
 
-/* ── layout: scattered around the rings (top / left in %) ──────────────── */
+type Mark = { key: string; node: React.ReactNode };
 
-type Mark = { key: string; node: React.ReactNode; top: string; left: string; delay: string };
-
-const MARKS: Mark[] = [
-  { key: "reddit", node: Reddit, top: "9%", left: "58%", delay: "0s" },
-  { key: "hn", node: <Badge bg="#FF6600">Y</Badge>, top: "20%", left: "30%", delay: "1.1s" },
-  { key: "x", node: XMark, top: "44%", left: "12%", delay: "2.1s" },
-  { key: "g2", node: <Badge bg="#EF492D"><span className="text-[10px]">G2</span></Badge>, top: "72%", left: "22%", delay: "0.7s" },
-  { key: "ph", node: <Badge bg="#DA552F" round>P</Badge>, top: "84%", left: "52%", delay: "1.6s" },
-  { key: "capterra", node: <Badge bg="#044D80"><span className="text-[10px]">Ca</span></Badge>, top: "76%", left: "80%", delay: "2.5s" },
-  { key: "discord", node: Discord, top: "40%", left: "87%", delay: "0.4s" },
-  { key: "linkedin", node: <Badge bg="#0A66C2"><span className="text-[11px] lowercase">in</span></Badge>, top: "16%", left: "78%", delay: "1.9s" },
+/** Outer ring — the primary listening surfaces. */
+const OUTER: Mark[] = [
+  { key: "reddit", node: Reddit },
+  { key: "x", node: XMark },
+  { key: "hn", node: <Badge bg="#FF6600">Y</Badge> },
+  { key: "linkedin", node: <Badge bg="#0A66C2"><span className="text-[11px] lowercase">in</span></Badge> },
 ];
+
+/** Inner ring — review sites & communities. */
+const INNER: Mark[] = [
+  { key: "g2", node: <Badge bg="#EF492D"><span className="text-[10px]">G2</span></Badge> },
+  { key: "ph", node: <Badge bg="#DA552F" round>P</Badge> },
+  { key: "capterra", node: <Badge bg="#044D80"><span className="text-[10px]">Ca</span></Badge> },
+  { key: "discord", node: Discord },
+];
+
+/* ── orbit ─────────────────────────────────────────────────────────────── */
+
+/**
+ * One revolving ring. The wrapper spins; each chip spins the opposite way at
+ * the same duration, cancelling the rotation so logos never turn upside down.
+ */
+function Orbit({
+  items,
+  radius,
+  duration,
+  startDeg,
+  reverse = false,
+}: {
+  items: Mark[];
+  radius: number; // % of container half-width
+  duration: number; // seconds per revolution
+  startDeg: number;
+  reverse?: boolean;
+}) {
+  return (
+    <div
+      className="absolute inset-0 animate-spin"
+      style={{
+        animationDuration: `${duration}s`,
+        animationDirection: reverse ? "reverse" : "normal",
+      }}
+    >
+      {items.map((m, i) => {
+        const deg = startDeg + (360 / items.length) * i;
+        const rad = (deg * Math.PI) / 180;
+        const left = 50 + radius * Math.cos(rad);
+        const top = 50 + radius * Math.sin(rad);
+        return (
+          <span
+            key={m.key}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ top: `${top}%`, left: `${left}%` }}
+          >
+            <span
+              className="flex h-[52px] w-[52px] animate-spin items-center justify-center rounded-2xl border border-divider bg-surface shadow-sm"
+              style={{
+                animationDuration: `${duration}s`,
+                animationDirection: reverse ? "normal" : "reverse",
+              }}
+            >
+              {m.node}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 function Ring({ size }: { size: string }) {
   return (
@@ -92,49 +151,19 @@ export function OrbitSources() {
         </p>
       </div>
 
-      {/* Orbit */}
       <div className="relative mx-auto mt-16 aspect-square w-full max-w-[540px]">
-        <Ring size="100%" />
-        <Ring size="66%" />
+        {/* Orbit paths — sized so the chips ride exactly on them */}
+        <Ring size="88%" />
+        <Ring size="64%" />
         <Ring size="34%" />
 
-        {/* Soft center glow for depth */}
-        <span
-          aria-hidden
-          className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-signal/[0.07] blur-3xl"
-        />
+        {/* Revolving rings — opposite directions, different speeds */}
+        <Orbit items={OUTER} radius={44} duration={48} startDeg={-90} />
+        <Orbit items={INNER} radius={32} duration={34} startDeg={-45} reverse />
 
-        {/* Radar sweep — a soft rotating beam with a bright leading edge */}
-        <span
-          aria-hidden
-          className="absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full [animation-duration:16s]"
-          style={{
-            background:
-              "conic-gradient(from 0deg, rgba(209,78,43,0) 0deg, rgba(209,78,43,0) 248deg, rgba(209,78,43,0.05) 332deg, rgba(209,78,43,0.15) 356deg, rgba(209,78,43,0.32) 360deg)",
-            WebkitMaskImage: "radial-gradient(circle, #000 48%, rgba(0,0,0,0.4) 60%, transparent 67%)",
-            maskImage: "radial-gradient(circle, #000 48%, rgba(0,0,0,0.4) 60%, transparent 67%)",
-          }}
-        />
-
-        {/* Source chips */}
-        {MARKS.map((m) => (
-          <span
-            key={m.key}
-            className="absolute flex h-[52px] w-[52px] -translate-x-1/2 -translate-y-1/2 animate-drift items-center justify-center rounded-2xl border border-divider bg-surface shadow-sm"
-            style={{ top: m.top, left: m.left, animationDelay: m.delay }}
-          >
-            {m.node}
-          </span>
-        ))}
-
-        {/* Center hub — the listener */}
-        <span className="absolute left-1/2 top-1/2 flex h-[68px] w-[68px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-divider bg-surface shadow-md">
-          <span aria-hidden className="absolute inset-0 animate-live-pulse rounded-2xl ring-2 ring-signal/25" />
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <circle cx="12" cy="16" r="1.9" className="fill-signal" />
-            <path d="M8 12.5a5.7 5.7 0 0 1 8 0" stroke="#D14E2B" strokeWidth="1.6" strokeLinecap="round" opacity="0.75" />
-            <path d="M5.4 9.6a9.5 9.5 0 0 1 13.2 0" stroke="#D14E2B" strokeWidth="1.6" strokeLinecap="round" opacity="0.45" />
-          </svg>
+        {/* Center hub — the Eavesdrop mark */}
+        <span className="absolute left-1/2 top-1/2 flex h-[76px] w-[76px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-divider bg-surface shadow-md">
+          <LogoMark size={38} />
         </span>
       </div>
 
