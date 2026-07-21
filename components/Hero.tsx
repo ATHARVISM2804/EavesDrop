@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductShowcase } from "./home/ProductShowcase";
+import { CloudBackdrop } from "./home/CloudBackdrop";
 
 /**
  * Full-bleed atmosphere plate with the tabbed product showcase floating over
@@ -42,8 +43,19 @@ function Ridgeline() {
 export function Hero() {
   return (
     <section className="relative">
-      {/* Atmosphere plate — pulled up behind the floating nav */}
+      {/* Atmosphere plate — pulled up behind the floating nav.
+          Layer order: gradient (base, instant) → cloud video → legibility
+          scrim → ridgeline → content. */}
       <div className="atmosphere atmosphere-fade relative -mt-[4.5rem] overflow-hidden pb-px pt-[4.5rem]">
+        <CloudBackdrop />
+
+        {/* Legibility scrim — lifts the centre so the dark headline holds
+            contrast over bright, moving clouds; fades the plate to white below. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_55%_at_50%_38%,rgba(255,255,255,0.72),transparent_70%)]"
+        />
+
         <Ridgeline />
 
         <div className="container-content relative z-10 pb-44 pt-20 text-center md:pb-60 md:pt-28">
