@@ -4,10 +4,10 @@ export function CTA() {
   return (
     <section className="py-24">
       <div className="container-content">
-        <div className="relative overflow-hidden rounded-2xl bg-ink px-8 py-16 text-center text-paper md:px-16 md:py-20">
+        <div className="grain relative overflow-hidden rounded-2xl border border-ink/5 bg-ink px-8 py-16 text-center text-paper shadow-lg md:px-16 md:py-20">
           <div
             aria-hidden
-            className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-signal/20 blur-3xl"
+            className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-signal/25 blur-3xl"
           />
           <div
             aria-hidden

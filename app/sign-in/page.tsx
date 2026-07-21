@@ -47,17 +47,26 @@ export default async function SignInPage({
         </div>
       </div>
 
-      <div className="relative hidden w-1/2 overflow-hidden bg-ink md:block">
+      <div className="grain relative hidden w-1/2 overflow-hidden bg-ink md:block">
         <div
           aria-hidden
           className="absolute -left-24 bottom-1/3 h-72 w-72 rounded-full bg-static/25 blur-3xl"
         />
+        <div
+          aria-hidden
+          className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-signal/20 blur-3xl"
+        />
         <div className="relative flex h-full flex-col justify-center px-16 text-paper">
-          <p className="font-serif text-3xl font-semibold leading-snug">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-signal">
+            <span className="h-px w-5 bg-signal/60" />
+            Welcome back
+          </span>
+          <p className="mt-5 font-serif text-4xl font-semibold leading-[1.15]">
             Your next customer is talking right now.
           </p>
           <p className="mt-4 max-w-sm text-paper/60">
-            Sign in to see this week&apos;s highest-intent signals.
+            Sign in to see this week&apos;s highest-intent signals across Reddit,
+            X, and Hacker News.
           </p>
         </div>
       </div>

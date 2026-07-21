@@ -47,7 +47,7 @@ export interface ScoreResult {
   reasoning: string;
   suggestedReplyAngle: string | null;
   /** which pass produced this score. */
-  model: "haiku" | "sonnet";
+  model: "haiku" | "sonnet" | "demo";
 }
 
 export interface ScoredCandidate extends ScoreResult {

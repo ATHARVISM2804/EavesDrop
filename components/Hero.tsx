@@ -1,65 +1,88 @@
 import Link from "next/link";
-import { LeadFeedMock } from "./LeadFeedMock";
+import { ProductShowcase } from "./home/ProductShowcase";
+
+/**
+ * Full-bleed atmosphere plate with the tabbed product showcase floating over
+ * its lower edge — the reference's signature hero composition.
+ *
+ * The plate is a pure-CSS alpine gradient (see `.atmosphere` in globals.css)
+ * plus the ridge SVG below. To swap in real photography, drop a
+ * `<Image fill priority>` into the plate and remove the ridge + background.
+ */
+function Ridgeline() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1440 320"
+      preserveAspectRatio="none"
+      className="absolute inset-x-0 bottom-0 h-[46%] w-full"
+    >
+      {/* Far range — pale, hazy */}
+      <path
+        d="M0 232 L138 176 L246 214 L378 132 L520 206 L648 158 L792 220 L918 166 L1064 212 L1198 154 L1320 200 L1440 162 L1440 320 L0 320Z"
+        fill="#C3D0DE"
+        opacity="0.5"
+      />
+      {/* Mid range */}
+      <path
+        d="M0 268 L112 220 L232 258 L352 196 L482 250 L604 206 L742 258 L874 212 L1002 254 L1146 200 L1282 246 L1440 208 L1440 320 L0 320Z"
+        fill="#AFC0D2"
+        opacity="0.45"
+      />
+      {/* Near range — resolves into the white page */}
+      <path
+        d="M0 300 L150 268 L288 294 L430 254 L566 288 L706 252 L850 292 L988 258 L1130 290 L1272 256 L1440 286 L1440 320 L0 320Z"
+        fill="#9FB2C7"
+        opacity="0.35"
+      />
+    </svg>
+  );
+}
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="container-content grid items-center gap-14 py-20 md:py-28 lg:grid-cols-[1.05fr_0.95fr]">
-        {/* Left: copy */}
-        <div className="max-w-xl">
-          <span className="eyebrow">Multi-source buyer intent</span>
-          <h1 className="mt-5 font-serif text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-            We listen where your{" "}
-            <span className="italic text-signal">buyers</span> talk.
+    <section className="relative">
+      {/* Atmosphere plate — pulled up behind the floating nav */}
+      <div className="atmosphere atmosphere-fade relative -mt-[4.5rem] overflow-hidden pb-px pt-[4.5rem]">
+        <Ridgeline />
+
+        <div className="container-content relative z-10 pb-44 pt-20 text-center md:pb-60 md:pt-28">
+          <div className="animate-fade-up">
+            <span className="badge-hero">
+              <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+              Built for B2B SaaS teams
+            </span>
+          </div>
+
+          <h1 className="display-1 mx-auto mt-7 max-w-4xl animate-fade-up text-ink [animation-delay:60ms]">
+            Buyer-intent infrastructure
+            <br className="hidden sm:block" /> that listens where your buyers talk.
           </h1>
-          <p className="mt-6 text-lg leading-relaxed text-static">
-            Eavesdrop finds people across Reddit, X, and Hacker News who are
-            actively expressing buying intent for a product like yours — and
-            gets smarter about it every time you give feedback.
+
+          <p className="lead mx-auto mt-6 max-w-xl animate-fade-up text-ink/60 [animation-delay:120ms]">
+            Eavesdrop finds the people across Reddit, X, and Hacker News who are
+            actively expressing intent for a product like yours — scored, triaged,
+            and sharpened by your feedback.
           </p>
 
-          {/* CTA input */}
-          <form
-            action="/sign-up"
-            className="mt-8 flex flex-col gap-3 sm:flex-row"
-          >
-            <input
-              type="text"
-              name="product"
-              placeholder="Describe what you sell…"
-              className="w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal"
-            />
-            <button type="submit" className="btn-signal shrink-0">
-              Find my buyers
-            </button>
-          </form>
-          <p className="mt-3 text-xs text-static">
-            Free tier · no credit card · 10 leads/week on us
-          </p>
-        </div>
+          <div className="mt-9 flex animate-fade-up flex-col items-center justify-center gap-3 [animation-delay:180ms] sm:flex-row">
+            <Link href="/sign-up" className="btn-signal px-6 py-3">
+              Start free
+            </Link>
+            <Link href="/#how-it-works" className="btn-ghost px-6 py-3">
+              See how it works
+            </Link>
+          </div>
 
-        {/* Right: product mock */}
-        <div className="relative">
-          <div
-            aria-hidden
-            className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-signal/8 via-transparent to-static/8 blur-2xl"
-          />
-          <LeadFeedMock />
+          <p className="mt-5 animate-fade-up text-xs text-ink/45 [animation-delay:220ms]">
+            Free tier · no credit card · 10 leads a week on us
+          </p>
         </div>
       </div>
 
-      {/* Trust strip */}
-      <div className="border-y border-divider bg-paper">
-        <div className="container-content flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-4 text-xs text-static">
-          <span>Listening across</span>
-          <span className="font-medium text-ink">Reddit</span>
-          <span className="text-divider">·</span>
-          <span className="font-medium text-ink">X</span>
-          <span className="text-divider">·</span>
-          <span className="font-medium text-ink">Hacker News</span>
-          <span className="text-divider">·</span>
-          <span className="italic">review sites soon</span>
-        </div>
+      {/* Tabbed app showcase — overlaps the plate's lower edge */}
+      <div className="container-content relative z-20 -mt-40 animate-fade-up [animation-delay:260ms] md:-mt-52">
+        <ProductShowcase />
       </div>
     </section>
   );

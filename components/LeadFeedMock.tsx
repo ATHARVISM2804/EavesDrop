@@ -61,7 +61,7 @@ function ScoreBar({ score }: { score: number }) {
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-divider">
         <div
-          className="h-full rounded-full bg-signal"
+          className="h-full rounded-full bg-gradient-to-r from-signal/70 to-signal"
           style={{ width: `${score}%` }}
         />
       </div>
@@ -74,28 +74,46 @@ function ScoreBar({ score }: { score: number }) {
 
 export function LeadFeedMock() {
   return (
-    <div className="rounded-lg border border-divider bg-paper shadow-[0_1px_0_rgba(14,14,16,0.03)]">
-      {/* Mock header */}
-      <div className="flex items-center justify-between border-b border-divider px-5 py-3">
+    <div className="overflow-hidden rounded-xl border border-divider bg-surface shadow-lg ring-1 ring-black/[0.02]">
+      {/* Window chrome */}
+      <div className="flex items-center gap-2 border-b border-divider bg-sunken/70 px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-alert/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-signal/50" />
+        <span className="h-2.5 w-2.5 rounded-full bg-success/50" />
+        <span className="ml-2 truncate text-[11px] font-medium text-static">
+          eavesdrop.app / leads
+        </span>
+      </div>
+
+      {/* Feed header */}
+      <div className="flex items-center justify-between border-b border-hairline px-5 py-3">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-success" />
-          <span className="text-xs font-medium text-static">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-live-pulse rounded-full bg-success" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+          </span>
+          <span className="text-xs font-semibold text-ink">
             Live buyer-intent feed
           </span>
         </div>
-        <span className="text-xs text-static">Sorted by intent</span>
+        <span className="rounded-sm bg-ink/5 px-2 py-0.5 text-[11px] font-medium text-static">
+          Sorted by intent
+        </span>
       </div>
 
       {/* Rows */}
-      <ul className="divide-y divide-divider">
+      <ul className="divide-y divide-hairline">
         {leads.map((lead, i) => {
           const src = sourceMeta[lead.source];
           const cat = categoryMeta[lead.category];
           return (
-            <li key={i} className="px-5 py-4">
+            <li
+              key={i}
+              className="px-5 py-4 transition-colors hover:bg-signal/[0.03]"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-2 text-xs text-static">
-                  <span className="font-medium text-ink">{src.label}</span>
+                  <span className="font-semibold text-ink">{src.label}</span>
                   <span className="text-divider">·</span>
                   <span className="truncate">{lead.handle}</span>
                 </div>

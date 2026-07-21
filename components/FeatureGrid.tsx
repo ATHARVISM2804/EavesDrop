@@ -35,22 +35,35 @@ export function FeatureGrid() {
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {features.map((f) => (
-            <div key={f.group} className="card flex flex-col">
-              <span className="eyebrow">{f.group}</span>
+          {features.map((f, i) => (
+            <div
+              key={f.group}
+              className="card card-hover group relative flex flex-col overflow-hidden"
+            >
+              {/* Top accent rule that grows on hover */}
+              <span className="absolute inset-x-0 top-0 h-0.5 w-full origin-left scale-x-0 bg-gradient-to-r from-signal to-signal/30 transition-transform duration-300 group-hover:scale-x-100" />
+
+              <div className="flex items-center justify-between">
+                <span className="eyebrow">{f.group}</span>
+                <span className="font-serif text-sm font-semibold text-divider">
+                  0{i + 1}
+                </span>
+              </div>
               <h3 className="mt-3 font-serif text-2xl font-semibold tracking-tight">
                 {f.title}
               </h3>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-static">
                 {f.body}
               </p>
-              <ul className="mt-6 space-y-2 border-t border-divider pt-5">
+              <ul className="mt-6 space-y-2.5 border-t border-hairline pt-5">
                 {f.points.map((p) => (
                   <li
                     key={p}
-                    className="flex items-center gap-2 text-sm text-ink"
+                    className="flex items-center gap-2.5 text-sm text-ink"
                   >
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-signal" />
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-signal/12">
+                      <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+                    </span>
                     {p}
                   </li>
                 ))}

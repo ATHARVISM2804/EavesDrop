@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LeadCard, type LeadCardData } from "@/components/dashboard/LeadCard";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import type { IntentCategory, LeadFeedback, Source } from "@/lib/scoring/types";
 
 export const metadata: Metadata = {
@@ -75,9 +76,12 @@ export default async function LeadsPage() {
             looks like for you.
           </p>
         </div>
-        <Link href="/dashboard/queries" className="btn-ink shrink-0 text-sm">
-          Manage queries
-        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <RefreshButton />
+          <Link href="/dashboard/queries" className="btn-ink text-sm">
+            Manage queries
+          </Link>
+        </div>
       </div>
 
       {error ? (

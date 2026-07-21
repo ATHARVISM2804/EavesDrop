@@ -14,6 +14,11 @@ export interface UserRow {
   email: string;
   plan: PlanKind;
   stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string | null; // active | trialing | past_due | canceled | null
+  notify_enabled: boolean;
+  notify_slack_webhook: string | null;
+  notify_min_score: number;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +59,7 @@ export interface ScoredLeadRow {
   scored_model: string | null;
   user_feedback: LeadFeedback | null;
   feedback_at: string | null;
+  notified_at: string | null;
   created_at: string;
 }
 

@@ -38,19 +38,44 @@ export default function SignUpPage() {
       </div>
 
       {/* Right: brand panel */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-ink md:block">
+      <div className="grain relative hidden w-1/2 overflow-hidden bg-ink md:block">
         <div
           aria-hidden
           className="absolute -right-24 top-1/3 h-72 w-72 rounded-full bg-signal/20 blur-3xl"
         />
+        <div
+          aria-hidden
+          className="absolute -left-20 bottom-16 h-64 w-64 rounded-full bg-static/20 blur-3xl"
+        />
         <div className="relative flex h-full flex-col justify-center px-16 text-paper">
-          <p className="font-serif text-3xl font-semibold leading-snug">
+          <p className="font-serif text-4xl font-semibold leading-snug">
             “We listen where your buyers talk.”
           </p>
           <p className="mt-4 max-w-sm text-paper/60">
             Reddit, X, and Hacker News — scored for buying intent and sorted so
             you reply while it&apos;s hot.
           </p>
+
+          <ul className="mt-10 space-y-3">
+            {[
+              "10 free leads a week, no credit card",
+              "Intent scoring & category triage",
+              "Scoring that learns from your feedback",
+            ].map((point) => (
+              <li key={point} className="flex items-center gap-3 text-sm text-paper/80">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M13.5 4.5 6.5 11.5 3 8"
+                    stroke="#D97B3F"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {point}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </main>

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   Eavesdrop — "Altitude" design system
+   Swiss-editorial, near-monochrome. Borders carry the structure; elevation is
+   reserved for the two things that genuinely float (nav pill, hero product shot).
+   ========================================================================== */
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -10,49 +16,212 @@
   body {
     @apply bg-paper text-ink font-sans antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* Inter: friendlier a/g/l */
+  }
+
+  /* Headlines are tight and medium-weight — never heavy. */
+  h1,
+  h2,
+  h3 {
+    @apply tracking-display;
+    font-weight: 500;
   }
 
   ::selection {
-    @apply bg-signal/20 text-ink;
+    @apply bg-ink/10 text-ink;
+  }
+
+  :where(a, button, input, textarea, select):focus-visible {
+    @apply outline-none ring-2 ring-ink/25 ring-offset-2 ring-offset-paper;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
-  /* Section container — consistent horizontal rhythm */
+  /* --- Layout rhythm ------------------------------------------------------ */
+
   .container-content {
     @apply mx-auto w-full max-w-content px-6 md:px-10;
   }
 
-  /* Editorial eyebrow label */
-  .eyebrow {
-    @apply text-xs font-medium uppercase tracking-[0.18em] text-static;
+  /* Generous, editorial vertical rhythm. Oxygen breathes — so do we. */
+  .section {
+    @apply py-24 md:py-32;
+  }
+  .section-tight {
+    @apply py-16 md:py-20;
   }
 
-  /* Primary CTA — solid amber, sharp-ish corners */
+  /* --- Type scale --------------------------------------------------------- */
+
+  /* Hero headline */
+  .display-1 {
+    @apply text-[2.75rem] font-medium leading-[1.06] tracking-display sm:text-6xl md:text-[4.25rem];
+  }
+  /* Section headline — the centered two-liner Oxygen uses everywhere */
+  .display-2 {
+    @apply text-[2rem] font-medium leading-[1.12] tracking-display sm:text-4xl md:text-5xl;
+  }
+  .display-3 {
+    @apply text-2xl font-medium leading-[1.2] tracking-display md:text-3xl;
+  }
+  /* Lead paragraph under a headline */
+  .lead {
+    @apply text-base leading-relaxed tracking-tightish text-static md:text-lg;
+  }
+
+  /* --- Eyebrow ------------------------------------------------------------ */
+  /* Tiny uppercase micro-label. No rule, no colour — just quiet letterspacing. */
+
+  .eyebrow,
+  .eyebrow-center {
+    @apply inline-block text-[11px] font-medium uppercase tracking-eyebrow text-static-soft;
+  }
+
+  /* --- Buttons ------------------------------------------------------------ */
+  /* Primary is INK, not accent — matching the reference. The accent colour is
+     reserved for signal (scores, live dots), never for chrome. */
+
   .btn-signal {
-    @apply inline-flex items-center justify-center rounded-md bg-signal px-5 py-3
-           text-sm font-medium text-paper transition-colors duration-150
-           hover:bg-signal/90 focus:outline-none focus-visible:ring-2
-           focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-2.5
+           text-sm font-medium text-paper transition-colors duration-200
+           hover:bg-ink-soft active:bg-ink;
   }
 
-  /* Secondary CTA — solid ink */
   .btn-ink {
-    @apply inline-flex items-center justify-center rounded-md bg-ink px-5 py-3
-           text-sm font-medium text-paper transition-colors duration-150
-           hover:bg-ink/90 focus:outline-none focus-visible:ring-2
-           focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-2.5
+           text-sm font-medium text-paper transition-colors duration-200
+           hover:bg-ink-soft;
   }
 
-  /* Ghost / link-style button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md border border-divider
-           bg-transparent px-5 py-3 text-sm font-medium text-ink transition-colors
-           duration-150 hover:border-static hover:bg-ink/[0.03];
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-divider
+           bg-surface px-5 py-2.5 text-sm font-medium text-ink transition-colors duration-200
+           hover:border-static-soft hover:bg-sunken;
   }
 
-  /* Flat editorial card — 1px warm border, no heavy shadow */
+  /* Quiet text link with an arrow */
+  .btn-text {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-ink
+           transition-opacity duration-200 hover:opacity-60;
+  }
+
+  /* Inverted primary, for use on dark/photographic panels */
+  .btn-invert {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-paper px-5 py-2.5
+           text-sm font-medium text-ink transition-opacity duration-200 hover:opacity-90;
+  }
+
+  /* --- Surfaces ----------------------------------------------------------- */
+
   .card {
-    @apply rounded-lg border border-divider bg-paper p-6;
+    @apply rounded-xl border border-divider bg-surface p-6;
+  }
+
+  .card-hover {
+    @apply transition-colors duration-200 hover:border-static-soft/60;
+  }
+
+  /* Inset well — for nested mocks/screenshots inside a card */
+  .well {
+    @apply rounded-lg border border-hairline bg-veil p-4;
+  }
+
+  /* Small status/meta pill */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-divider bg-surface
+           px-3 py-1 text-xs font-medium text-static;
+  }
+
+  /* The badge that sits above the hero headline */
+  .badge-hero {
+    @apply inline-flex items-center gap-2 rounded-full border border-ink/10 bg-paper/70
+           px-3.5 py-1.5 text-xs font-medium text-ink backdrop-blur-md;
+  }
+
+  /* --- Atmosphere --------------------------------------------------------- */
+  /* Stands in for the reference's photographic plates. Cool alpine gradient —
+     no external assets, so it can't break CSP or slow the LCP.
+     To use real photography instead: drop an <Image fill> inside .atmosphere
+     and delete the background-image below. */
+
+  .atmosphere {
+    position: relative;
+    background-color: #eef1f5;
+    background-image:
+      /* warm low sun, top right */
+      radial-gradient(60% 45% at 78% 8%, rgba(255, 236, 214, 0.85), transparent 70%),
+      /* cool haze, left */
+        radial-gradient(55% 50% at 12% 22%, rgba(198, 214, 232, 0.75), transparent 70%),
+      /* horizon lift into white */
+        linear-gradient(180deg, #dbe4ee 0%, #e9eef4 42%, #f7f9fb 72%, #ffffff 100%);
+  }
+
+  /* Fades any atmosphere plate cleanly into the page below it. */
+  .atmosphere-fade::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 45%;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, #ffffff 92%);
+  }
+
+  /* --- Texture ------------------------------------------------------------ */
+
+  .bg-dot-grid {
+    background-image: radial-gradient(rgba(10, 11, 13, 0.055) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Hairline blueprint grid — quieter than dots, used behind product mocks */
+  .bg-line-grid {
+    background-image:
+      linear-gradient(to right, rgba(10, 11, 13, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10, 11, 13, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+  .grain > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Edge-fade for marquees / logo rows */
+  .mask-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 12%,
+      #000 88%,
+      transparent
+    );
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
   }
 }

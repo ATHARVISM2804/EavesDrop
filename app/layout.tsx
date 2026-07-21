@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-  axes: ["opsz"],
-});
-
+// Single-family system — the "Altitude" theme is set entirely in one geometric
+// sans, differentiated by weight and tracking rather than by typeface.
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -33,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

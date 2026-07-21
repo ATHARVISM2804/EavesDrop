@@ -8,7 +8,7 @@ import type { AuthState } from "@/app/auth/actions";
 type Mode = "sign-in" | "sign-up";
 
 const inputClass =
-  "mt-1.5 w-full rounded-md border border-divider bg-paper px-4 py-3 text-sm text-ink placeholder:text-static/70 focus:border-signal focus:outline-none focus:ring-1 focus:ring-signal";
+  "mt-1.5 w-full rounded-md border border-divider bg-surface px-4 py-3 text-sm text-ink shadow-xs transition-colors placeholder:text-static/70 focus:border-signal/60 focus:outline-none";
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
