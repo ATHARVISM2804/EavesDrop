@@ -4,6 +4,7 @@ import { SourceMarquee } from "@/components/SourceMarquee";
 import { Metrics } from "@/components/Metrics";
 import { BeyondLeadGen } from "@/components/home/BeyondLeadGen";
 import { PlatformTools } from "@/components/home/PlatformTools";
+import { OrbitSources } from "@/components/home/OrbitSources";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Comparison } from "@/components/Comparison";
 import { Positioning } from "@/components/Positioning";
@@ -29,6 +30,9 @@ export default function HomePage() {
         </Reveal>
         <Reveal>
           <PlatformTools />
+        </Reveal>
+        <Reveal>
+          <OrbitSources />
         </Reveal>
         {/* HowItWorks self-animates its timeline on scroll */}
         <HowItWorks />
