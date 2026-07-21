@@ -179,10 +179,10 @@ export default function PricingPage() {
                 {tiers.map((tier) => (
                   <div
                     key={tier.name}
-                    className={`relative flex flex-col rounded-2xl border bg-surface/95 p-6 backdrop-blur-sm transition-transform duration-300 ${
+                    className={`relative flex flex-col rounded-2xl p-6 transition-transform duration-300 ${
                       tier.featured
-                        ? "border-ink/15 shadow-float lg:-translate-y-3"
-                        : "border-divider shadow-lg hover:-translate-y-1"
+                        ? "glass-strong lg:-translate-y-3"
+                        : "glass hover:-translate-y-1"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ export default function PricingPage() {
                       {tier.cta}
                     </Link>
 
-                    <ul className="mt-6 space-y-3 border-t border-hairline pt-6">
+                    <ul className="mt-6 space-y-3 border-t border-ink/[0.08] pt-6">
                       {tier.features.map((feat) => (
                         <li key={feat} className="flex gap-2.5 text-sm text-ink">
                           <Check />

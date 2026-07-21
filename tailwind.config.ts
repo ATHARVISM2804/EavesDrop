@@ -123,6 +123,18 @@ const config: Config = {
           "0%, 100%": { boxShadow: "0 0 0 3px rgba(209,78,43,0.10)" },
           "50%": { boxShadow: "0 0 0 6px rgba(209,78,43,0.05)" },
         },
+        // Live sparkline bars breathing at staggered delays
+        bars: {
+          "0%, 100%": { transform: "scaleY(0.35)" },
+          "50%": { transform: "scaleY(1)" },
+        },
+        // Scanning line sweeping down a pane ("processing…")
+        scan: {
+          "0%": { top: "0%", opacity: "0" },
+          "12%": { opacity: "1" },
+          "88%": { opacity: "1" },
+          "100%": { top: "100%", opacity: "0" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.6s cubic-bezier(0.22,1,0.36,1) both",
@@ -134,6 +146,8 @@ const config: Config = {
         flash: "flash 1.4s ease-out both",
         shimmer: "shimmer 2.2s ease-in-out infinite",
         halo: "halo 1.6s ease-in-out infinite",
+        bars: "bars 1.4s ease-in-out infinite",
+        scan: "scan 3.4s ease-in-out infinite",
       },
     },
   },

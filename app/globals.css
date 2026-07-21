@@ -132,6 +132,29 @@
     @apply transition-colors duration-200 hover:border-static-soft/60;
   }
 
+  /* Frosted glass — translucent panel that blurs the atmosphere/clouds behind
+     it. The inset top highlight gives the lit-edge that reads as real glass.
+     Use over the cloud plate (pricing cards, nav pill, hero tab strip). */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      0 12px 40px rgba(10, 11, 13, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+  /* More opaque variant — for the featured card / anything holding dense text. */
+  .glass-strong {
+    background-color: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 20px 56px rgba(10, 11, 13, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
   /* Inset well — for nested mocks/screenshots inside a card */
   .well {
     @apply rounded-lg border border-hairline bg-veil p-4;

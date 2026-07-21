@@ -1,22 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Hero product showcase — a tabbed, self-running mock of the Eavesdrop app.
  *
- * Motion layers, outermost first:
- *  1. The tab strip auto-advances through product surfaces.
- *  2. Every pane re-enters on switch (keyed `animate-pane-in`) and staggers its
- *     children, so a swap reads as the app navigating rather than swapping.
- *  3. The Pipeline pane executes: nodes light in sequence, connectors fill, and
- *     a data packet travels the active edge.
- *  4. Numbers count up on entry; live counters tick while their pane is open.
+ * Every tab is alive, not just Pipeline:
+ *  • Lead feed  — a scanning sweep + a lead that periodically flashes in as NEW.
+ *  • Sources    — per-source live sparklines, ticking mention counts + sync clock.
+ *  • Scoring    — a processing queue flowing Haiku → Sonnet, bars that fill.
+ *  • Pipeline   — nodes light in sequence, connectors fill, a packet rides the edge.
+ *  • Alerts     — a Slack alert delivering, with a live "delivered" pulse.
  *
- * The pipeline steps mirror the real implementation in lib/pipeline/ — this is
- * the actual architecture, not invented choreography.
- *
- * Every loop halts under prefers-reduced-motion, and the tab cycle pauses on
+ * The pipeline steps mirror the real implementation in lib/pipeline/.
+ * Every loop halts under prefers-reduced-motion; the tab cycle pauses on
  * hover/focus so a visitor reading a pane isn't yanked off it.
  */
 
@@ -45,7 +42,7 @@ const PIPELINE_STEPS = [
 
 const LEADS = [
   {
-    src: "reddit",
+    src: "reddit" as const,
     who: "u/marcusbuilds",
     score: 94,
     cat: "Buying signal",
@@ -53,7 +50,7 @@ const LEADS = [
     text: "Our Notion setup has completely fallen over at 40 people. Budget approved, need something with real permissions by Q3 — what are people actually using?",
   },
   {
-    src: "hn",
+    src: "hn" as const,
     who: "swyx_dev",
     score: 88,
     cat: "Switching",
@@ -61,7 +58,7 @@ const LEADS = [
     text: "Finally hit the wall with Zapier pricing. Looking to move ~200 workflows somewhere saner this month.",
   },
   {
-    src: "reddit",
+    src: "reddit" as const,
     who: "u/hana_ops",
     score: 71,
     cat: "Complaint",
@@ -71,10 +68,10 @@ const LEADS = [
 ];
 
 const SOURCES = [
-  { name: "Reddit", meta: "OAuth · 6 subreddits", live: true, seed: 1284 },
-  { name: "Hacker News", meta: "Algolia · no key needed", live: true, seed: 476 },
-  { name: "X / Twitter", meta: "Recent search API", live: false, seed: 0 },
-  { name: "G2", meta: "Review monitoring", live: false, seed: 0 },
+  { name: "Reddit", src: "reddit" as const, meta: "OAuth · 6 subreddits", live: true, seed: 1284, spark: [4, 7, 5, 9, 6, 8, 5, 7, 9, 6, 8, 10] },
+  { name: "Hacker News", src: "hn" as const, meta: "Algolia · no key needed", live: true, seed: 476, spark: [3, 5, 4, 6, 5, 4, 7, 5, 6, 8, 6, 7] },
+  { name: "X / Twitter", src: "x" as const, meta: "Recent search API", live: false, seed: 0, spark: [] },
+  { name: "G2", src: "g2" as const, meta: "Review monitoring", live: false, seed: 0, spark: [] },
 ];
 
 const SCORING_ROWS = [
@@ -118,7 +115,7 @@ function useCountUp(target: number, run: boolean, ms = 900) {
   return n;
 }
 
-/** Slowly climbing "live" counter. Starts deterministic, so SSR stays stable. */
+/** Slowly climbing "live" counter. Deterministic start keeps SSR stable. */
 function useTicker(start: number, run: boolean, everyMs = 2400) {
   const [n, setN] = useState(start);
   useEffect(() => {
@@ -127,6 +124,17 @@ function useTicker(start: number, run: boolean, everyMs = 2400) {
     return () => clearInterval(t);
   }, [run, start, everyMs]);
   return n;
+}
+
+/** "Last sync" seconds counter that climbs then resets — feels like polling. */
+function useSyncClock(run: boolean) {
+  const [s, setS] = useState(6);
+  useEffect(() => {
+    if (!run) return;
+    const t = setInterval(() => setS((v) => (v >= 18 ? 1 : v + 1)), 1000);
+    return () => clearInterval(t);
+  }, [run]);
+  return s;
 }
 
 /* ── icons ─────────────────────────────────────────────────────────────── */
@@ -152,6 +160,36 @@ function Icon({ name, className = "" }: { name: IconName; className?: string }) 
   );
 }
 
+type SourceKey = "reddit" | "hn" | "x" | "g2";
+
+/** Small monochrome brand glyph for each source, in a rounded chip. */
+function SourceGlyph({ src, live }: { src: SourceKey; live: boolean }) {
+  const glyph = {
+    reddit: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M12 8c2.6 0 4.9.9 6.3 2.2.3-.2.6-.3 1-.3a1.7 1.7 0 0 1 1 3.1c0 .3.1.5.1.8 0 3-3.8 5.4-8.4 5.4S3.6 16.8 3.6 13.8c0-.3 0-.5.1-.8a1.7 1.7 0 0 1 1-3.1c.4 0 .7.1 1 .3C7.1 8.9 9.4 8 12 8Zm0-5.5.9 4.2c1.6.1 3 .5 4.1 1.1a1.4 1.4 0 1 1 .6 1.9M8.4 14.2a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Zm7.2 0a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Zm-7 2.4c1 .9 2.3 1.2 3.4 1.2s2.4-.3 3.4-1.2" stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+      </svg>
+    ),
+    hn: <span className="text-[11px] font-bold">Y</span>,
+    x: (
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M18.9 1.6h3.7l-8 9.2 9.4 12.4h-7.4l-5.8-7.6-6.6 7.6H.5l8.6-9.8L0 1.6h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.4h2L6.5 3.7H4.4l13.2 17.3Z" />
+      </svg>
+    ),
+    g2: <span className="text-[10px] font-bold">G2</span>,
+  }[src];
+
+  return (
+    <span
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
+        live ? "border-divider bg-surface text-ink" : "border-hairline bg-sunken text-static-soft"
+      }`}
+    >
+      {glyph}
+    </span>
+  );
+}
+
 /* ── shared atoms ──────────────────────────────────────────────────────── */
 
 /** Staggered child wrapper — every pane's rows cascade in. */
@@ -159,6 +197,22 @@ function Row({ i, children, className = "" }: { i: number; children: React.React
   return (
     <div className={`animate-fade-up ${className}`} style={{ animationDelay: `${i * 70}ms` }}>
       {children}
+    </div>
+  );
+}
+
+/** Live sparkline — bars breathe at staggered delays (pure CSS, no state). */
+function Sparkline({ data, run }: { data: number[]; run: boolean }) {
+  const max = Math.max(...data, 1);
+  return (
+    <div className="flex h-8 items-end gap-[3px]" aria-hidden>
+      {data.map((v, i) => (
+        <span
+          key={i}
+          className={`w-1 origin-bottom rounded-full bg-signal/60 ${run ? "animate-bars" : ""}`}
+          style={{ height: `${(v / max) * 100}%`, animationDelay: `${i * 90}ms` }}
+        />
+      ))}
     </div>
   );
 }
@@ -179,21 +233,13 @@ function ScorePill({ score, run }: { score: number; run: boolean }) {
   );
 }
 
-function SourceDot({ src }: { src: string }) {
-  return (
-    <span className="rounded bg-sunken px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-static">
-      {src}
-    </span>
-  );
-}
-
 /* ── panes ─────────────────────────────────────────────────────────────── */
 
 function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
   const done = Math.min(step, PIPELINE_STEPS.length);
   return (
-    <div className="bg-dot-grid flex h-full flex-col p-5 md:p-6">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+    <div className="bg-dot-grid flex h-full flex-col p-5 md:p-7">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         {PIPELINE_STEPS.map((s, i) => {
           const isDone = i < step;
           const isRunning = i === step;
@@ -205,7 +251,6 @@ function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
                     className="absolute inset-x-0 top-0 bottom-0 origin-top bg-signal transition-transform duration-500 ease-out"
                     style={{ transform: `scaleY(${isDone || isRunning ? 1 : 0})` }}
                   />
-                  {/* Data packet riding the active edge */}
                   {isRunning && !reduced && (
                     <span className="absolute -left-[2.5px] h-1.5 w-1.5 animate-packet rounded-full bg-signal shadow-[0_0_7px_rgba(209,78,43,0.9)]" />
                   )}
@@ -224,24 +269,15 @@ function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
                 <div className="flex items-center gap-2.5">
                   <span
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-semibold transition-colors duration-500 ${
-                      isDone
-                        ? "bg-signal text-white"
-                        : isRunning
-                          ? "bg-signal/15 text-signal"
-                          : "bg-sunken text-static-soft"
+                      isDone ? "bg-signal text-white" : isRunning ? "bg-signal/15 text-signal" : "bg-sunken text-static-soft"
                     }`}
                   >
                     {isDone ? <Icon name="check" className="h-3 w-3" /> : i + 1}
                   </span>
-
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{s.title}</span>
-                    <span className="mt-0.5 block truncate font-mono text-[11px] text-static-soft">
-                      {s.meta}
-                    </span>
+                    <span className="mt-0.5 block truncate font-mono text-[11px] text-static-soft">{s.meta}</span>
                   </span>
-
-                  {/* Output count fades in as the step completes */}
                   <span
                     className={`hidden shrink-0 font-mono text-[11px] tabular-nums transition-all duration-500 sm:block ${
                       isDone ? "text-signal opacity-100" : "opacity-0"
@@ -249,7 +285,6 @@ function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
                   >
                     {s.out}
                   </span>
-
                   <span
                     className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold tracking-wide transition-colors duration-500 ${
                       isRunning ? "bg-signal/12 text-signal" : "bg-sunken text-static-soft"
@@ -264,8 +299,7 @@ function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
         })}
       </div>
 
-      {/* Live run status */}
-      <div className="mx-auto mt-4 flex w-full max-w-md items-center justify-between rounded-lg border border-divider bg-surface/80 px-3 py-2 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-md items-center justify-between rounded-lg border border-divider bg-surface/80 px-3 py-2 backdrop-blur-sm">
         <span className="flex items-center gap-2 text-[11px] text-static">
           <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-success" />
           {done === PIPELINE_STEPS.length ? "Run complete" : `Running step ${done + 1} of ${PIPELINE_STEPS.length}`}
@@ -282,75 +316,127 @@ function PipelinePane({ step, reduced }: { step: number; reduced: boolean }) {
 }
 
 function LeadsPane({ run }: { run: boolean }) {
+  // Periodically re-flash the top lead so the feed feels live.
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    const t = setInterval(() => setPulse((p) => p + 1), 4200);
+    return () => clearInterval(t);
+  }, [run]);
+
   return (
-    <div className="h-full space-y-2.5 overflow-hidden p-5 md:p-6">
-      {LEADS.map((l, i) => (
-        <Row key={l.who} i={i}>
-          <div
-            className={`rounded-xl border border-divider bg-surface p-3.5 ${
-              i === 0 && run ? "animate-flash" : ""
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex min-w-0 items-center gap-2">
-                <SourceDot src={l.src} />
-                <span className="truncate text-[13px] font-medium text-ink">{l.who}</span>
-                {i === 0 && (
-                  <span className="shrink-0 rounded bg-signal/12 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-signal">
-                    NEW
+    <div className="relative h-full overflow-hidden p-5 md:p-7">
+      {/* Scanning sweep — reads as "listening across sources right now" */}
+      {run && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 z-10 h-16 animate-scan bg-[linear-gradient(180deg,transparent,rgba(209,78,43,0.06),transparent)]"
+        />
+      )}
+
+      <div className="mb-3 flex items-center justify-between">
+        <span className="flex items-center gap-2 text-[11px] text-static">
+          <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-signal" />
+          Scanning Reddit · Hacker News
+        </span>
+        <span className="font-mono text-[11px] text-static-soft">sorted by intent</span>
+      </div>
+
+      <div className="space-y-2.5">
+        {LEADS.map((l, i) => (
+          <Row key={l.who} i={i}>
+            {/* key={pulse} remounts the top card each tick so the flash replays */}
+            <div
+              key={i === 0 ? pulse : "static"}
+              className={`rounded-xl border border-divider bg-surface p-3.5 ${
+                i === 0 && run ? "animate-flash" : ""
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-2">
+                  <SourceGlyph src={l.src} live />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate text-[13px] font-medium text-ink">{l.who}</span>
+                      {i === 0 && (
+                        <span className="shrink-0 rounded bg-signal/12 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-signal">
+                          NEW
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[11px] text-static-soft">{l.cat} · {l.ago} ago</span>
                   </span>
-                )}
-                <span className="hidden shrink-0 text-[11px] text-static-soft sm:inline">· {l.ago}</span>
-              </span>
-              <ScorePill score={l.score} run={run} />
+                </span>
+                <ScorePill score={l.score} run={run} />
+              </div>
+              <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-static">{l.text}</p>
             </div>
-            <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-static">{l.text}</p>
-          </div>
-        </Row>
-      ))}
-      <Row i={LEADS.length}>
-        <p className="pt-0.5 text-center text-[11px] text-static-soft">
-          Sorted by intent — noise never reaches this list.
-        </p>
-      </Row>
+          </Row>
+        ))}
+      </div>
     </div>
   );
 }
 
 function SourcesPane({ run }: { run: boolean }) {
+  const sync = useSyncClock(run);
   return (
-    <div className="grid h-full grid-cols-1 content-start gap-2.5 overflow-hidden p-5 sm:grid-cols-2 md:p-6">
-      {SOURCES.map((s, i) => (
-        <Row key={s.name} i={i}>
-          <SourceCard {...s} run={run} />
-        </Row>
-      ))}
+    <div className="flex h-full flex-col p-5 md:p-7">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="flex items-center gap-2 text-[11px] text-static">
+          <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-success" />
+          Polling every 5 min
+        </span>
+        <span className="font-mono text-[11px] tabular-nums text-static-soft">last sync {sync}s ago</span>
+      </div>
+
+      <div className="grid flex-1 grid-cols-1 content-start gap-3 sm:grid-cols-2">
+        {SOURCES.map((s, i) => (
+          <Row key={s.name} i={i}>
+            <SourceCard {...s} run={run} />
+          </Row>
+        ))}
+      </div>
     </div>
   );
 }
 
 function SourceCard({
   name,
+  src,
   meta,
   live,
   seed,
+  spark,
   run,
 }: (typeof SOURCES)[number] & { run: boolean }) {
   const count = useTicker(seed, run);
   return (
-    <div className={`rounded-xl border border-divider bg-surface p-3.5 ${live ? "" : "opacity-55"}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-medium text-ink">{name}</span>
+    <div className={`rounded-xl border border-divider bg-surface p-4 ${live ? "" : "opacity-60"}`}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="flex items-center gap-2.5">
+          <SourceGlyph src={src} live={live} />
+          <span className="flex flex-col">
+            <span className="text-[13px] font-medium text-ink">{name}</span>
+            <span className="font-mono text-[10px] text-static-soft">{meta}</span>
+          </span>
+        </span>
         <span className={`flex items-center gap-1.5 text-[11px] ${live ? "text-success" : "text-static-soft"}`}>
           {live && <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-success" />}
           {live ? "Connected" : "Coming soon"}
         </span>
       </div>
-      <p className="mt-1.5 font-mono text-[11px] text-static-soft">{meta}</p>
-      {live && (
-        <p className="mt-2 font-mono text-[11px] tabular-nums text-static">
-          <span className="text-ink">{count.toLocaleString()}</span> mentions this week
-        </p>
+
+      {live ? (
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <span className="font-mono text-[11px] tabular-nums text-static">
+            <span className="text-base font-semibold text-ink">{count.toLocaleString()}</span>
+            <span className="ml-1">mentions / wk</span>
+          </span>
+          <Sparkline data={spark} run={run} />
+        </div>
+      ) : (
+        <div className="mt-3 h-8 rounded-md border border-dashed border-hairline" />
       )}
     </div>
   );
@@ -358,38 +444,69 @@ function SourceCard({
 
 function ScoringPane({ run }: { run: boolean }) {
   return (
-    <div className="flex h-full flex-col justify-center gap-2.5 overflow-hidden p-5 md:p-6">
-      {SCORING_ROWS.map((r, i) => (
-        <Row key={r.k} i={i}>
-          <div className="rounded-xl border border-divider bg-surface p-3.5">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-[13px] font-medium text-ink">{r.k}</span>
-              <span className="font-mono text-[11px] tabular-nums text-static-soft">
-                {r.pct}% of batch
+    <div className="flex h-full flex-col p-5 md:p-7">
+      {/* Live processing queue — chips flow Haiku → (borderline) → Sonnet */}
+      <div className="mb-4 rounded-xl border border-divider bg-surface p-3">
+        <div className="mb-2 flex items-center justify-between text-[11px] text-static">
+          <span className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-signal" />
+            Scoring queue
+          </span>
+          <span className="font-mono text-static-soft">two-pass</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {[68, 42, 91, 55, 12, 77, 39, 84].map((v, i) => (
+            <span
+              key={i}
+              className={`h-6 flex-1 rounded-md text-center text-[9px] font-semibold leading-6 tabular-nums ${
+                v >= 40 && v <= 70
+                  ? "bg-signal/15 text-signal"
+                  : v >= 85
+                    ? "bg-signal/80 text-white"
+                    : "bg-sunken text-static"
+              } ${run ? "animate-fade-up" : ""}`}
+              style={{ animationDelay: `${i * 90}ms` }}
+            >
+              {v}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-static-soft">
+          <span className="text-signal">Amber</span> = 40–70 borderline, escalated to Sonnet.
+        </p>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-center gap-2.5">
+        {SCORING_ROWS.map((r, i) => (
+          <Row key={r.k} i={i}>
+            <div className="rounded-xl border border-divider bg-surface p-3.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[13px] font-medium text-ink">{r.k}</span>
+                <span className="font-mono text-[11px] tabular-nums text-static-soft">{r.pct}% of batch</span>
+              </div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-static">{r.d}</p>
+              <span className="relative mt-2.5 block h-1 overflow-hidden rounded-full bg-hairline">
+                <span
+                  className="block h-full rounded-full bg-signal/70 transition-[width] duration-1000 ease-out"
+                  style={{ width: run ? `${r.pct}%` : "0%", transitionDelay: `${i * 120}ms` }}
+                />
               </span>
             </div>
-            <p className="mt-1.5 text-[12px] leading-relaxed text-static">{r.d}</p>
-            <span className="relative mt-2.5 block h-1 overflow-hidden rounded-full bg-hairline">
-              <span
-                className="block h-full rounded-full bg-signal/70 transition-[width] duration-1000 ease-out"
-                style={{ width: run ? `${r.pct}%` : "0%", transitionDelay: `${i * 120}ms` }}
-              />
-            </span>
-          </div>
-        </Row>
-      ))}
+          </Row>
+        ))}
+      </div>
     </div>
   );
 }
 
-function AlertsPane() {
+function AlertsPane({ run }: { run: boolean }) {
   return (
-    <div className="flex h-full flex-col justify-center overflow-hidden p-5 md:p-6">
+    <div className="flex h-full flex-col justify-center p-5 md:p-7">
       <Row i={0}>
         <div className="rounded-xl border border-divider bg-surface p-4">
           <div className="flex items-center gap-2 border-b border-hairline pb-2.5">
-            <span className="h-2 w-2 rounded-full bg-signal" />
-            <span className="text-[13px] font-medium text-ink">#sales</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-sunken text-[11px] font-bold text-ink">#</span>
+            <span className="text-[13px] font-medium text-ink">sales</span>
             <span className="text-[11px] text-static-soft">· Slack</span>
             <span className="ml-auto flex items-center gap-1.5 text-[11px] text-success">
               <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-success" />
@@ -398,30 +515,31 @@ function AlertsPane() {
           </div>
           <div className="space-y-2 pt-3">
             <Row i={1}>
-              <p className="text-[13px] font-medium text-ink">
-                👂 New 94/100 lead on Reddit — Buying signal
-              </p>
+              <p className="text-[13px] font-medium text-ink">👂 New 94/100 lead on Reddit — Buying signal</p>
             </Row>
             <Row i={2}>
-              <p className="border-l-2 border-divider pl-3 text-[12px] leading-relaxed text-static">
-                “Our Notion setup has completely fallen over at 40 people. Budget approved,
-                need something with real permissions by Q3…”
+              <p className="border-l-2 border-signal/40 pl-3 text-[12px] leading-relaxed text-static">
+                “Our Notion setup has completely fallen over at 40 people. Budget approved, need something with real
+                permissions by Q3…”
               </p>
             </Row>
             <Row i={3}>
               <p className="text-[12px] text-static">
-                <span className="font-medium text-ink">💬 Reply angle:</span> Lead with the
-                permissions model and the 40-seat migration path.
+                <span className="font-medium text-ink">💬 Reply angle:</span> Lead with the permissions model and the
+                40-seat migration path.
               </p>
             </Row>
             <Row i={4}>
-              <p className="font-mono text-[11px] text-signal">Open the thread →</p>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-sunken px-2.5 py-1 font-mono text-[11px] text-signal">
+                Open the thread →
+              </span>
             </Row>
           </div>
         </div>
       </Row>
       <Row i={5}>
-        <p className="mt-3 text-center text-[11px] text-static-soft">
+        <p className="mt-3 flex items-center justify-center gap-2 text-center text-[11px] text-static-soft">
+          {run && <span className="h-1.5 w-1.5 animate-live-pulse rounded-full bg-signal" />}
           Fires the second a lead clears your score threshold.
         </p>
       </Row>
@@ -449,24 +567,18 @@ export function ProductShowcase() {
   const tab = TABS[tabIdx];
   const header = HEADERS[tab];
 
-  // Gate entry animations until after hydration so SSR markup matches.
   useEffect(() => setMounted(true), []);
 
-  // Tab carousel
   useEffect(() => {
     if (reduced || paused) return;
     const t = setInterval(() => setTabIdx((i) => (i + 1) % TABS.length), 6500);
     return () => clearInterval(t);
   }, [reduced, paused]);
 
-  // Pipeline step runner — only ticks while its pane is on screen
   useEffect(() => {
     if (reduced || tab !== "Pipeline") return;
     setStep(0);
-    const t = setInterval(
-      () => setStep((s) => (s >= PIPELINE_STEPS.length ? 0 : s + 1)),
-      950,
-    );
+    const t = setInterval(() => setStep((s) => (s >= PIPELINE_STEPS.length ? 0 : s + 1)), 950);
     return () => clearInterval(t);
   }, [reduced, tab]);
 
@@ -485,7 +597,7 @@ export function ProductShowcase() {
         <div
           role="tablist"
           aria-label="Product surfaces"
-          className="flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-ink/[0.06] bg-paper/70 p-1.5 shadow-pill backdrop-blur-xl"
+          className="flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-white/40 bg-paper/55 p-1.5 shadow-pill backdrop-blur-xl backdrop-saturate-150"
         >
           {TABS.map((t, i) => {
             const active = i === tabIdx;
@@ -552,12 +664,12 @@ export function ProductShowcase() {
             </div>
 
             {/* key={tab} restarts every child animation on switch */}
-            <div key={tab} className="h-[340px] animate-pane-in bg-veil/40 sm:h-[380px]">
+            <div key={tab} className="h-[430px] animate-pane-in bg-veil/40 sm:h-[470px]">
               {tab === "Pipeline" && <PipelinePane step={step} reduced={reduced} />}
               {tab === "Lead feed" && <LeadsPane run={run} />}
               {tab === "Sources" && <SourcesPane run={run} />}
               {tab === "Scoring" && <ScoringPane run={run} />}
-              {tab === "Alerts" && <AlertsPane />}
+              {tab === "Alerts" && <AlertsPane run={run} />}
             </div>
           </div>
         </div>

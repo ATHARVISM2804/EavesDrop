@@ -74,7 +74,7 @@ function ProductDropdown() {
 export function Nav() {
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
-      <nav className="mx-auto flex h-14 max-w-content items-center justify-between rounded-full border border-ink/[0.07] bg-paper/75 pl-5 pr-2 shadow-pill backdrop-blur-xl backdrop-saturate-150">
+      <nav className="mx-auto flex h-14 max-w-content items-center justify-between rounded-full border border-white/40 bg-paper/60 pl-5 pr-2 shadow-pill backdrop-blur-xl backdrop-saturate-150">
         <Link
           href="/"
           aria-label="Eavesdrop home"
